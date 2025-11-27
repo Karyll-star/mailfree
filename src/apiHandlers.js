@@ -638,14 +638,14 @@ export async function handleApiRequest(request, db, mailDomains, options = { moc
       const mailboxId = await getMailboxIdByAddress(db, normalized);
       if (!mailboxId) return Response.json([]);
       
-      // 邮箱用户只能查看近24小时的邮件
+      // 邮箱用户不再限制只能查看近24小时的邮件（永久保存）
       let timeFilter = '';
       let timeParam = [];
-      if (isMailboxOnly) {
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        timeFilter = ' AND received_at >= ?';
-        timeParam = [twentyFourHoursAgo];
-      }
+      // if (isMailboxOnly) {
+      //   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      //   timeFilter = ' AND received_at >= ?';
+      //   timeParam = [twentyFourHoursAgo];
+      // }
       
       // 优化：减少默认查询数量，降低行读取
       const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 50);
@@ -698,14 +698,14 @@ export async function handleApiRequest(request, db, mailDomains, options = { moc
         return Response.json(arr);
       }
       
-      // 邮箱用户只能查看近24小时的邮件
+      // 邮箱用户不再限制只能查看近24小时的邮件（永久保存）
       let timeFilter = '';
       let timeParam = [];
-      if (isMailboxOnly) {
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        timeFilter = ' AND received_at >= ?';
-        timeParam = [twentyFourHoursAgo];
-      }
+      // if (isMailboxOnly) {
+      //   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      //   timeFilter = ' AND received_at >= ?';
+      //   timeParam = [twentyFourHoursAgo];
+      // }
       
       const placeholders = ids.map(()=>'?').join(',');
       try{
@@ -737,11 +737,13 @@ export async function handleApiRequest(request, db, mailDomains, options = { moc
     if (isMock) {
       return Response.json(buildMockMailboxes(limit, offset, mailDomains));
     }
-    // 超级管理员（严格管理员）可查看全部；其他仅查看自身绑定
+    // 超级管理员（严格管理员）或普通管理员可查看全部；其他仅查看自身绑定
     try{
-      if (isStrictAdmin()){
+      const jwtPayload = getJwtPayload();
+      // 放宽权限：所有管理员角色都可以查看完整邮箱列表，以解决历史数据可见性问题
+      if (isStrictAdmin() || jwtPayload?.role === 'admin'){
         // 严格管理员：查看所有邮箱，并用自己在 user_mailboxes 中的置顶状态覆盖；未置顶则为 0
-        const payload = getJwtPayload();
+        const payload = jwtPayload || getJwtPayload();
         const adminUid = Number(payload?.userId || 0);
         const like = `%${q.replace(/%/g,'').replace(/_/g,'')}%`;
         
@@ -1121,14 +1123,14 @@ export async function handleApiRequest(request, db, mailDomains, options = { moc
       return Response.json(buildMockEmailDetail(emailId));
     }
     try{
-      // 邮箱用户需要验证邮件是否在24小时内
+      // 邮箱用户不再限制验证邮件是否在24小时内（永久保存）
       let timeFilter = '';
       let timeParam = [];
-      if (isMailboxOnly) {
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        timeFilter = ' AND received_at >= ?';
-        timeParam = [twentyFourHoursAgo];
-      }
+      // if (isMailboxOnly) {
+      //   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      //   timeFilter = ' AND received_at >= ?';
+      //   timeParam = [twentyFourHoursAgo];
+      // }
       
       const { results } = await db.prepare(`
         SELECT id, sender, to_addrs, subject, verification_code, preview, r2_bucket, r2_object_key, received_at, is_read
