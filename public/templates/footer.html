@@ -1,14 +1,17 @@
 <style>
   .global-footer{
-    position: fixed;
-    left: 0; right: 0; bottom: 12px;
+    /* 改为流式布局，避免遮挡内容 */
+    position: static;
+    width: 100%;
+    margin-top: 40px;
+    margin-bottom: 20px;
     text-align: center;
     color: var(--muted2, #64748b);
-    font-size: 15px;
-    opacity: .95;
+    font-size: 14px;
+    opacity: .8;
     pointer-events: none;
   }
-  @media (max-width: 640px){ .global-footer{ font-size: 11px; bottom: 8px; } }
+  @media (max-width: 640px){ .global-footer{ font-size: 12px; margin-top: 30px; margin-bottom: 16px; } }
 </style>
 <footer class="global-footer">© <span id="footer-year"></span> karyll's邮箱 - 简约而不简单</footer>
 <script>
