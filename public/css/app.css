@@ -141,6 +141,10 @@ body{
   -moz-osx-font-smoothing: grayscale;
   position: relative;
   overflow-x: hidden;
+  padding-bottom: 40px; /* 为固定底部的页脚留出空间 */
+}
+@media (max-width: 640px){ 
+  body{ padding-bottom: 30px; } /* 移动端调整，与页脚字体大小匹配 */
 }
 
 .demo-banner{
