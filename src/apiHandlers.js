@@ -825,8 +825,17 @@ export async function handleApiRequest(request, db, mailDomains, options = { moc
         LIMIT ? OFFSET ?
       `).bind(...bindParams).all();
       return Response.json(results || []);
-    }catch(_){
-      return Response.json([]);
+    }catch(e){
+      console.error('获取邮箱列表详细错误:', e);
+      return new Response(JSON.stringify({
+        error: '获取邮箱列表失败',
+        message: e.message,
+        stack: e.stack,
+        name: e.name
+      }, null, 2), { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' } 
+      });
     }
   }
 
